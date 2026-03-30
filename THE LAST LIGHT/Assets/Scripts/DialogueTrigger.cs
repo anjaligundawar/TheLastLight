@@ -13,43 +13,18 @@ public class DialogueTrigger : MonoBehaviour
 
     private bool playerNear = false;
     private bool talking = false;
-    private DialogueUI dialogueUI;
-
-    void Start()
-    {
-        dialogueUI = FindObjectOfType<DialogueUI>();
-
-        // Debug checks
-        if (dialogueUI == null)
-            Debug.LogError("❌ DialogueUI not found in scene!");
-        else
-            Debug.Log("✅ DialogueUI found");
-
-        Collider col = GetComponent<Collider>();
-        if (col == null)
-            Debug.LogError("❌ No collider on Girl_NPC!");
-        else if (!col.isTrigger)
-            Debug.LogError("❌ Collider exists but Is Trigger is OFF!");
-        else
-            Debug.Log("✅ Trigger collider found");
-    }
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.E))
-            Debug.Log($"E pressed | playerNear={playerNear} | talking={talking}");
-
         if (playerNear && !talking && Input.GetKeyDown(KeyCode.E))
             StartDialogue();
     }
 
     void OnTriggerEnter(Collider other)
     {
-        Debug.Log($"Trigger entered by: {other.gameObject.name} | Tag: {other.tag}");
-
         if (!other.CompareTag("Player")) return;
         playerNear = true;
-        dialogueUI.ShowPrompt(true);
+        DialogueUI.Instance.ShowPrompt(true);  // show "Press E"
     }
 
     void OnTriggerExit(Collider other)
@@ -57,17 +32,15 @@ public class DialogueTrigger : MonoBehaviour
         if (!other.CompareTag("Player")) return;
         playerNear = false;
         talking = false;
-        dialogueUI.ShowPrompt(false);
-        dialogueUI.Hide();
+        DialogueUI.Instance.ShowPrompt(false); // hide "Press E"
+        DialogueUI.Instance.Hide();            // hide dialogue box
         FindObjectOfType<FPSController>().canMove = true;
     }
 
     void StartDialogue()
     {
-        Debug.Log("✅ Starting dialogue!");
         talking = true;
-        dialogueUI.ShowPrompt(false);
-        dialogueUI.Show(npcName, lines, this);
+        DialogueUI.Instance.Show(npcName, lines, this);
         FindObjectOfType<FPSController>().canMove = false;
     }
 

@@ -5,6 +5,10 @@ using TMPro;
 
 public class DialogueUI : MonoBehaviour
 {
+    // Singleton
+    public static DialogueUI Instance { get; private set; }
+
+    [Header("UI References")]
     public GameObject dialoguePanel;
     public TextMeshProUGUI speakerNameText;
     public TextMeshProUGUI bodyText;
@@ -16,8 +20,21 @@ public class DialogueUI : MonoBehaviour
     private bool typing;
     private DialogueTrigger activeTrigger;
 
+    void Awake()
+    {
+        // Singleton setup
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+        DontDestroyOnLoad(gameObject); // persists across scenes
+    }
+
     void Start()
     {
+        // Always start hidden
         dialoguePanel.SetActive(false);
         promptObject.SetActive(false);
         nextButton.onClick.AddListener(Next);
@@ -32,14 +49,17 @@ public class DialogueUI : MonoBehaviour
             if (typing)
             {
                 StopAllCoroutines();
-                bodyText.text = lines[index]; // instantly complete line
+                bodyText.text = lines[index];
                 typing = false;
             }
             else Next();
         }
     }
 
-    public void ShowPrompt(bool show) => promptObject.SetActive(show);
+    public void ShowPrompt(bool show)
+    {
+        promptObject.SetActive(show);
+    }
 
     public void Show(string speaker, string[] dialogueLines, DialogueTrigger trigger)
     {
@@ -47,7 +67,8 @@ public class DialogueUI : MonoBehaviour
         lines = dialogueLines;
         index = 0;
         speakerNameText.text = speaker;
-        dialoguePanel.SetActive(true);
+        dialoguePanel.SetActive(true);    // show panel
+        promptObject.SetActive(false);    // hide "press E" once talking
         StartCoroutine(TypeLine(lines[0]));
     }
 
