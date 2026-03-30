@@ -341,8 +341,55 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 99f1abac444cfae42b117ebf05ab1dc3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 159546933}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 99f1abac444cfae42b117ebf05ab1dc3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 159546932}
   m_SourcePrefab: {fileID: 100100000, guid: 99f1abac444cfae42b117ebf05ab1dc3, type: 3}
+--- !u!1 &159546931 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 99f1abac444cfae42b117ebf05ab1dc3, type: 3}
+  m_PrefabInstance: {fileID: 159546930}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &159546932
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 159546931}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d75cc2a3402da7842baee97aa6d1c68d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MemoryTrigger
+  destination: {fileID: 0}
+  interactionDistance: 3
+  promptUI: {fileID: 0}
+--- !u!65 &159546933
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 159546931}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.57743454, y: 1.2101696, z: 1.1267991}
+  m_Center: {x: -0.000012591481, y: 0.60508454, z: -0.107136756}
 --- !u!1001 &191233851
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2998,8 +3045,55 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: c7bc4089c1af93745a93c51d260f7587, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1721399723}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: c7bc4089c1af93745a93c51d260f7587, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1721399722}
   m_SourcePrefab: {fileID: 100100000, guid: c7bc4089c1af93745a93c51d260f7587, type: 3}
+--- !u!1 &1721399721 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: c7bc4089c1af93745a93c51d260f7587, type: 3}
+  m_PrefabInstance: {fileID: 1721399720}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1721399722
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1721399721}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d75cc2a3402da7842baee97aa6d1c68d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MemoryTrigger
+  destination: {fileID: 732926127}
+  interactionDistance: 3
+  promptUI: {fileID: 0}
+--- !u!65 &1721399723
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1721399721}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.25880483, y: 0.087122895, z: 0.33189097}
+  m_Center: {x: 0.0038969666, y: 0.026063237, z: -0.011203796}
 --- !u!1001 &1799910372
 PrefabInstance:
   m_ObjectHideFlags: 0
