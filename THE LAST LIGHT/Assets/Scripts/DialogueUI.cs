@@ -1,3 +1,4 @@
+// DialogueUI.cs
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
@@ -5,85 +6,219 @@ using TMPro;
 
 public class DialogueUI : MonoBehaviour
 {
-    // Singleton
     public static DialogueUI Instance { get; private set; }
 
-    [Header("UI References")]
+    [Header("Dialogue Panel")]
     public GameObject dialoguePanel;
     public TextMeshProUGUI speakerNameText;
     public TextMeshProUGUI bodyText;
-    public GameObject promptObject;
     public Button nextButton;
+    public GameObject promptObject;
 
-    private string[] lines;
-    private int index;
+    [Header("Choice Panel")]
+    public GameObject choicePanel;
+    public Button choiceButtonA;
+    public Button choiceButtonB;
+    public TextMeshProUGUI choiceAText;
+    public TextMeshProUGUI choiceBText;
+
+    private DialogueNode currentNode;
+    private int lineIndex;
     private bool typing;
+    private bool waitingForChoice;
     private DialogueTrigger activeTrigger;
+    private DialogueChoice pendingChoice;
 
     void Awake()
     {
-        // Singleton setup
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
-        DontDestroyOnLoad(gameObject); // persists across scenes
+        DontDestroyOnLoad(gameObject);
     }
 
     void Start()
     {
-        // Always start hidden
         dialoguePanel.SetActive(false);
+        choicePanel.SetActive(false);
         promptObject.SetActive(false);
-        nextButton.onClick.AddListener(Next);
+
+        nextButton.onClick.AddListener(OnNextClicked);
+        choiceButtonA.onClick.AddListener(() => OnChoiceSelected(0));
+        choiceButtonB.onClick.AddListener(() => OnChoiceSelected(1));
     }
 
     void Update()
     {
+        // Handle choices with keyboard
+        if (waitingForChoice)
+        {
+            if (Input.GetKeyDown(KeyCode.A)) OnChoiceSelected(0);
+            if (Input.GetKeyDown(KeyCode.B)) OnChoiceSelected(1);
+            if (Input.GetKeyDown(KeyCode.Return))
+            {
+                waitingForChoice = false;
+                Hide();
+                activeTrigger?.OnDialogueEnd();
+            }
+            return;
+        }
+
         if (!dialoguePanel.activeSelf) return;
 
-        if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.E))
+        // Advance dialogue with Enter, Space, or E
+        if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.E))
         {
             if (typing)
-            {
-                StopAllCoroutines();
-                bodyText.text = lines[index];
-                typing = false;
-            }
-            else Next();
+                SkipTypewriter();
+            else
+                OnNextClicked();
         }
     }
 
-    public void ShowPrompt(bool show)
-    {
-        promptObject.SetActive(show);
-    }
+    public void ShowPrompt(bool show) => promptObject.SetActive(show);
 
-    public void Show(string speaker, string[] dialogueLines, DialogueTrigger trigger)
+    public void StartNodeDialogue(DialogueNode startNode, DialogueTrigger trigger)
     {
         activeTrigger = trigger;
-        lines = dialogueLines;
-        index = 0;
-        speakerNameText.text = speaker;
-        dialoguePanel.SetActive(true);    // show panel
-        promptObject.SetActive(false);    // hide "press E" once talking
-        StartCoroutine(TypeLine(lines[0]));
+        currentNode = startNode;
+        lineIndex = 0;
+        waitingForChoice = false;
+
+        // Show dialogue panel, hide choice panel
+        dialoguePanel.SetActive(true);
+        choicePanel.SetActive(false);
+        promptObject.SetActive(false);
+
+        ShowCurrentLine();
     }
 
     public void Hide()
     {
         StopAllCoroutines();
         dialoguePanel.SetActive(false);
+        choicePanel.SetActive(false);
+        waitingForChoice = false;
         typing = false;
     }
 
-    void Next()
+    void ShowCurrentLine()
     {
-        index++;
-        if (index < lines.Length)
-            StartCoroutine(TypeLine(lines[index]));
+        if (lineIndex >= currentNode.npcLines.Count)
+        {
+            ShowChoicesOrEnd();
+            return;
+        }
+
+        DialogueLine line = currentNode.npcLines[lineIndex];
+        speakerNameText.text = line.speakerName;
+
+        if (!string.IsNullOrEmpty(line.animationTrigger) && activeTrigger != null)
+            activeTrigger.TriggerAnimation(line.animationTrigger);
+
+        nextButton.gameObject.SetActive(true);
+        StartCoroutine(TypeLine(line.dialogueText));
+    }
+
+    void OnNextClicked()
+    {
+        if (typing) { SkipTypewriter(); return; }
+        lineIndex++;
+        ShowCurrentLine();
+    }
+
+    void ShowChoicesOrEnd()
+    {
+        if (currentNode.choices == null || currentNode.choices.Count == 0)
+        {
+            Hide();
+            activeTrigger?.OnDialogueEnd();
+            return;
+        }
+
+        // Hide dialogue panel, show ONLY choice panel
+        dialoguePanel.SetActive(false);
+        choicePanel.SetActive(true);
+        waitingForChoice = true;
+
+        choiceAText.text = $"[A]  {currentNode.choices[0].choiceText}";
+        choiceButtonA.gameObject.SetActive(true);
+
+        if (currentNode.choices.Count > 1)
+        {
+            choiceBText.text = $"[B]  {currentNode.choices[1].choiceText}";
+            choiceButtonB.gameObject.SetActive(true);
+        }
+        else
+        {
+            choiceButtonB.gameObject.SetActive(false);
+        }
+    }
+
+    void OnChoiceSelected(int index)
+    {
+        if (!waitingForChoice) return;
+        if (index >= currentNode.choices.Count) return;
+
+        waitingForChoice = false;
+        choicePanel.SetActive(false);
+        pendingChoice = currentNode.choices[index];
+
+        if (!string.IsNullOrEmpty(pendingChoice.playerLine))
+        {
+            dialoguePanel.SetActive(true);
+            speakerNameText.text = pendingChoice.playerSpeakerName;
+            nextButton.gameObject.SetActive(true);
+            StartCoroutine(TypeLine(pendingChoice.playerLine, () =>
+            {
+                StartCoroutine(WaitForEnterThenBranch());
+            }));
+        }
+        else
+        {
+            StartCoroutine(DelayThenBranch());
+        }
+    }
+
+    IEnumerator WaitForEnterThenBranch()
+    {
+        // Wait for all keys to be released first
+        yield return new WaitUntil(() =>
+            !Input.GetKey(KeyCode.Return) &&
+            !Input.GetKey(KeyCode.Space) &&
+            !Input.GetKey(KeyCode.E) &&
+            !Input.GetKey(KeyCode.A) &&
+            !Input.GetKey(KeyCode.B));
+
+        // Now wait for a fresh keypress
+        yield return new WaitUntil(() =>
+            Input.GetKeyDown(KeyCode.Return) ||
+            Input.GetKeyDown(KeyCode.Space));
+
+        BranchToChoice(pendingChoice);
+    }
+
+    IEnumerator DelayThenBranch()
+    {
+        // Wait for all keys to be released first
+        yield return new WaitUntil(() =>
+            !Input.GetKey(KeyCode.Return) &&
+            !Input.GetKey(KeyCode.Space) &&
+            !Input.GetKey(KeyCode.E) &&
+            !Input.GetKey(KeyCode.A) &&
+            !Input.GetKey(KeyCode.B));
+
+        yield return null;
+        BranchToChoice(pendingChoice);
+    }
+    void BranchToChoice(DialogueChoice chosen)
+    {
+        if (chosen.nextNode != null)
+        {
+            currentNode = chosen.nextNode;
+            lineIndex = 0;
+            dialoguePanel.SetActive(true);
+            ShowCurrentLine();
+        }
         else
         {
             Hide();
@@ -91,7 +226,15 @@ public class DialogueUI : MonoBehaviour
         }
     }
 
-    IEnumerator TypeLine(string line)
+    void SkipTypewriter()
+    {
+        StopAllCoroutines();
+        if (lineIndex < currentNode.npcLines.Count)
+            bodyText.text = currentNode.npcLines[lineIndex].dialogueText;
+        typing = false;
+    }
+
+    IEnumerator TypeLine(string line, System.Action onComplete = null)
     {
         typing = true;
         bodyText.text = "";
@@ -101,5 +244,6 @@ public class DialogueUI : MonoBehaviour
             yield return new WaitForSeconds(0.03f);
         }
         typing = false;
+        onComplete?.Invoke();
     }
 }
