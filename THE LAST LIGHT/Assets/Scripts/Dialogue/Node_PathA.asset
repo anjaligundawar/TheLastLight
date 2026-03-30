@@ -13,8 +13,5 @@ MonoBehaviour:
   m_Name: Node_PathA
   m_EditorClassIdentifier: Assembly-CSharp::DialogueNode
   nodeID: path_a
-  npcLines:
-  - speakerName: Caroline
-    dialogueText: Fair enough. Stay safe out there.
-    animationTrigger: 
+  npcLines: []
   choices: []
