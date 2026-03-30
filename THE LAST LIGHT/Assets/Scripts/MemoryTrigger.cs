@@ -3,56 +3,89 @@ using UnityEngine;
 public class MemoryTrigger : MonoBehaviour
 {
     [Header("Teleport Settings")]
-    public Transform destination; // Drag the "Target_X" object here
-    public float interactionDistance = 3f;
+    public Transform destination;
+    public float interactionDistance = 8f;
 
     [Header("References")]
-    public GameObject promptUI; // Your "Press E" text
-    
+    public GameObject promptUI;
+
     private Transform playerTransform;
     private bool isPlayerNear = false;
+    private static MemoryTrigger currentActivePrompt = null; // only one prompt at a time
 
     void Start()
     {
-        playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+            playerTransform = player.transform;
+        else
+            Debug.LogError("MemoryTrigger: Player not found!");
+
+        if (promptUI == null)
+        {
+            promptUI = GameObject.Find("PromptUI");
+            if (promptUI == null)
+                Debug.LogError("MemoryTrigger: PromptUI not found on " + gameObject.name);
+        }
+
+        if (promptUI != null)
+            promptUI.SetActive(false);
     }
 
     void Update()
     {
+        if (playerTransform == null || promptUI == null) return;
+
         float distance = Vector3.Distance(transform.position, playerTransform.position);
 
         if (distance <= interactionDistance)
         {
-            isPlayerNear = true;
-            promptUI.SetActive(true);
+            // Only show prompt if no other trigger is active
+            if (!isPlayerNear && currentActivePrompt == null)
+            {
+                isPlayerNear = true;
+                currentActivePrompt = this;
+                promptUI.SetActive(true);
+            }
 
-            if (Input.GetKeyDown(KeyCode.E))
+            if (isPlayerNear && Input.GetKeyDown(KeyCode.E))
             {
                 ExecuteTeleport();
             }
         }
-        else if (isPlayerNear)
+        else
         {
-            isPlayerNear = false;
-            promptUI.SetActive(false);
+            if (isPlayerNear)
+            {
+                isPlayerNear = false;
+                if (currentActivePrompt == this)
+                    currentActivePrompt = null;
+                promptUI.SetActive(false);
+            }
         }
     }
 
     void ExecuteTeleport()
     {
+        if (destination == null)
+        {
+            Debug.LogError("MemoryTrigger: No destination assigned on " + gameObject.name);
+            return;
+        }
+
         CharacterController cc = playerTransform.GetComponent<CharacterController>();
-        
-        // 1. Disable Physics (Required for CharacterController)
         if (cc != null) cc.enabled = false;
 
-        // 2. Move Position and Match Rotation
         playerTransform.position = destination.position;
         playerTransform.rotation = destination.rotation;
 
-        // 3. Re-enable Physics
         if (cc != null) cc.enabled = true;
 
         promptUI.SetActive(false);
-        Debug.Log("Flashback Started!");
+        isPlayerNear = false;
+        if (currentActivePrompt == this)
+            currentActivePrompt = null;
+
+        Debug.Log("Teleported to: " + destination.name);
     }
 }
