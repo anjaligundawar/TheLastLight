@@ -1,52 +1,64 @@
+// DialogueTrigger.cs
 using UnityEngine;
 
 public class DialogueTrigger : MonoBehaviour
 {
-    [TextArea(2,4)]
-    public string[] lines = {
-        "Oh! I didn't hear you coming...",
-        "I've been standing here for so long.",
-        "Do you know what's going on?"
-    };
-
+    [Header("NPC Info")]
     public string npcName = "Caroline";
+    public Animator npcAnimator;
+
+    [Header("Dialogue Tree")]
+    public DialogueNode startNode;
+
+    [Header("References")]
+    public FPSController fpsController;
 
     private bool playerNear = false;
     private bool talking = false;
 
     void Update()
     {
+        float dist = Vector3.Distance(transform.position, fpsController.transform.position);
+
+        if (dist < 2.5f && !playerNear)
+        {
+            playerNear = true;
+            DialogueUI.Instance.ShowPrompt(true);
+        }
+        else if (dist >= 2.5f && playerNear)
+        {
+            playerNear = false;
+            talking = false;
+            DialogueUI.Instance.ShowPrompt(false);
+            DialogueUI.Instance.Hide();
+            fpsController.canMove = true;
+        }
+
         if (playerNear && !talking && Input.GetKeyDown(KeyCode.E))
             StartDialogue();
     }
 
-    void OnTriggerEnter(Collider other)
-    {
-        if (!other.CompareTag("Player")) return;
-        playerNear = true;
-        DialogueUI.Instance.ShowPrompt(true);  // show "Press E"
-    }
-
-    void OnTriggerExit(Collider other)
-    {
-        if (!other.CompareTag("Player")) return;
-        playerNear = false;
-        talking = false;
-        DialogueUI.Instance.ShowPrompt(false); // hide "Press E"
-        DialogueUI.Instance.Hide();            // hide dialogue box
-        FindObjectOfType<FPSController>().canMove = true;
-    }
-
     void StartDialogue()
     {
+        if (startNode == null)
+        {
+            Debug.LogWarning($"[DialogueTrigger] No startNode assigned on {gameObject.name}!");
+            return;
+        }
         talking = true;
-        DialogueUI.Instance.Show(npcName, lines, this);
-        FindObjectOfType<FPSController>().canMove = false;
+        fpsController.canMove = false;
+        DialogueUI.Instance.StartNodeDialogue(startNode, this);
+    }
+
+    public void TriggerAnimation(string triggerName)
+    {
+        if (npcAnimator != null)
+            npcAnimator.SetTrigger(triggerName);
     }
 
     public void OnDialogueEnd()
     {
         talking = false;
-        FindObjectOfType<FPSController>().canMove = true;
+        fpsController.canMove = true;
     }
 }
