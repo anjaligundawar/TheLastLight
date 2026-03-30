@@ -13,8 +13,5 @@ MonoBehaviour:
   m_Name: Node_PathB
   m_EditorClassIdentifier: Assembly-CSharp::DialogueNode
   nodeID: 
-  npcLines:
-  - speakerName: Caroline
-    dialogueText: Help? What kind of trouble are you in?
-    animationTrigger: 
+  npcLines: []
   choices: []

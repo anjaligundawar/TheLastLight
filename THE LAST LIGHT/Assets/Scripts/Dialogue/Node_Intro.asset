@@ -15,17 +15,31 @@ MonoBehaviour:
   nodeID: Intro
   npcLines:
   - speakerName: Caroline
-    dialogueText: Oh! I didn't hear you coming.
+    dialogueText: Arthur, do you really have to go, we already have a lot on the
+      table.
+    animationTrigger: 
+  - speakerName: Arthur
+    dialogueText: I know Caroline i am genuinely conflicted by that decision too,
+      i want to just stay and help you but i have dreamt for this opportunity ever
+      since i became a professor.
     animationTrigger: 
   - speakerName: Caroline
-    dialogueText: What brings you out here?
+    dialogueText: I know but, i'm just scared something were to happen and i couldn't
+      handle it i would prefer someone by my side.
+    animationTrigger: 
+  - speakerName: Arthur
+    dialogueText: I understand that.
+    animationTrigger: 
+  - speakerName: Caroline
+    dialogueText: 'but i know its a very rare occurrence and its probably just a
+      mothers worry and i don''t want you to sacrifice your dream for it. '
     animationTrigger: 
   choices:
-  - choiceText: Just passing through.
-    playerSpeakerName: User
-    playerLine: Don't mind me, just passing through.
+  - choiceText: go to the session (3 days)
+    playerSpeakerName: Narator
+    playerLine: Your kid died.
     nextNode: {fileID: 11400000, guid: 981fa84b9f3a2d046a16bfab127ceac3, type: 2}
-  - choiceText: I need your help.
-    playerSpeakerName: User
-    playerLine: I need your help with something.
+  - choiceText: Don't go to the session for something which might never happen
+    playerSpeakerName: Narator
+    playerLine: You just saved your kids life.
     nextNode: {fileID: 11400000, guid: ca522ce67ed8b0345bc42357695aa586, type: 2}
