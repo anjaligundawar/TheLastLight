@@ -1,3 +1,4 @@
+// MemoryTrigger.cs
 using UnityEngine;
 
 public class MemoryTrigger : MonoBehaviour
@@ -11,7 +12,10 @@ public class MemoryTrigger : MonoBehaviour
 
     private Transform playerTransform;
     private bool isPlayerNear = false;
-    private static MemoryTrigger currentActivePrompt = null; // only one prompt at a time
+    private static MemoryTrigger currentActivePrompt = null;
+
+    // ✅ ADDED
+    private DialogueUI dialogueUI;
 
     void Start()
     {
@@ -30,6 +34,9 @@ public class MemoryTrigger : MonoBehaviour
 
         if (promptUI != null)
             promptUI.SetActive(false);
+
+        // ✅ ADDED
+        dialogueUI = DialogueUI.Instance;
     }
 
     void Update()
@@ -40,7 +47,19 @@ public class MemoryTrigger : MonoBehaviour
 
         if (distance <= interactionDistance)
         {
-            // Only show prompt if no other trigger is active
+            // ✅ ADDED — dialogue is open, hide prompt and skip entirely
+            if (dialogueUI != null && dialogueUI.IsOpen)
+            {
+                if (isPlayerNear)
+                {
+                    isPlayerNear = false;
+                    if (currentActivePrompt == this)
+                        currentActivePrompt = null;
+                    promptUI.SetActive(false);
+                }
+                return;
+            }
+
             if (!isPlayerNear && currentActivePrompt == null)
             {
                 isPlayerNear = true;
