@@ -8,6 +8,9 @@ public class DialogueUI : MonoBehaviour
 {
     public static DialogueUI Instance { get; private set; }
 
+    // ✅ ADDED — lets MemoryTrigger check if dialogue is active
+    public bool IsOpen { get; private set; }
+
     [Header("Dialogue Panel")]
     public GameObject dialoguePanel;
     public TextMeshProUGUI speakerNameText;
@@ -49,7 +52,6 @@ public class DialogueUI : MonoBehaviour
 
     void Update()
     {
-        // Handle choices with keyboard
         if (waitingForChoice)
         {
             if (Input.GetKeyDown(KeyCode.A)) OnChoiceSelected(0);
@@ -65,7 +67,6 @@ public class DialogueUI : MonoBehaviour
 
         if (!dialoguePanel.activeSelf) return;
 
-        // Advance dialogue with Enter, Space, or E
         if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.E))
         {
             if (typing)
@@ -84,10 +85,12 @@ public class DialogueUI : MonoBehaviour
         lineIndex = 0;
         waitingForChoice = false;
 
-        // Show dialogue panel, hide choice panel
         dialoguePanel.SetActive(true);
         choicePanel.SetActive(false);
         promptObject.SetActive(false);
+
+        // ✅ ADDED
+        IsOpen = true;
 
         ShowCurrentLine();
     }
@@ -99,6 +102,9 @@ public class DialogueUI : MonoBehaviour
         choicePanel.SetActive(false);
         waitingForChoice = false;
         typing = false;
+
+        // ✅ ADDED
+        IsOpen = false;
     }
 
     void ShowCurrentLine()
@@ -135,7 +141,6 @@ public class DialogueUI : MonoBehaviour
             return;
         }
 
-        // Hide dialogue panel, show ONLY choice panel
         dialoguePanel.SetActive(false);
         choicePanel.SetActive(true);
         waitingForChoice = true;
@@ -181,7 +186,6 @@ public class DialogueUI : MonoBehaviour
 
     IEnumerator WaitForEnterThenBranch()
     {
-        // Wait for all keys to be released first
         yield return new WaitUntil(() =>
             !Input.GetKey(KeyCode.Return) &&
             !Input.GetKey(KeyCode.Space) &&
@@ -189,7 +193,6 @@ public class DialogueUI : MonoBehaviour
             !Input.GetKey(KeyCode.A) &&
             !Input.GetKey(KeyCode.B));
 
-        // Now wait for a fresh keypress
         yield return new WaitUntil(() =>
             Input.GetKeyDown(KeyCode.Return) ||
             Input.GetKeyDown(KeyCode.Space));
@@ -199,7 +202,6 @@ public class DialogueUI : MonoBehaviour
 
     IEnumerator DelayThenBranch()
     {
-        // Wait for all keys to be released first
         yield return new WaitUntil(() =>
             !Input.GetKey(KeyCode.Return) &&
             !Input.GetKey(KeyCode.Space) &&
@@ -210,6 +212,7 @@ public class DialogueUI : MonoBehaviour
         yield return null;
         BranchToChoice(pendingChoice);
     }
+
     void BranchToChoice(DialogueChoice chosen)
     {
         if (chosen.nextNode != null)
